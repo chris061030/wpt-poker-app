@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WPT Poker - Anotación de jugadores</title>
+
+<style>
+:root{
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --bg:#f5f7fa;
+  --surface-1:#ffffff;
+  --surface-2:#fbfcfe;
+  --text-primary:#18212f;
+  --text-secondary:#5f6b7a;
+  --text-muted:#8a94a3;
+  --text-danger:#b42318;
+  --border:#d9dee7;
+  --radius:10px;
+  --accent:#2563eb;
+  --shadow:0 8px 24px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text-primary);
+  font-family:var(--font-sans);
+  padding:22px;
+}
+.app-shell{
+  width:min(980px,100%);
+  margin:0 auto;
+  background:var(--surface-1);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:18px;
+  box-shadow:var(--shadow);
+}
+.sr-only{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+button,input,select,textarea{font:inherit}
+button{
+  border:1px solid var(--border);
+  background:var(--surface-1);
+  color:var(--text-primary);
+  border-radius:var(--radius);
+  padding:8px 11px;
+  cursor:pointer;
+  transition:.15s ease;
+}
+button:hover{background:#f2f5f9}
+button:disabled{opacity:.5;cursor:not-allowed}
+#addBtn,#saveBtn,#saveHandBtn,#loginBtn{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:white;
+}
+input,select,textarea{
+  border:1px solid var(--border);
+  background:var(--surface-1);
+  color:var(--text-primary);
+  border-radius:var(--radius);
+  padding:9px 10px;
+  outline:none;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+#authBox{
+  box-shadow:none;
+}
+#statusBanner{
+  border:1px solid var(--border);
+}
+#list > div,
+#handsList > div{
+  box-shadow:0 2px 8px rgba(16,24,40,.035);
+}
+.editBtn,.delBtn{
+  border-radius:8px!important;
+}
+#search{
+  min-height:38px;
+}
+@media(max-width:680px){
+  body{padding:10px}
+  .app-shell{padding:12px;border-radius:12px}
+  #loggedOutBox > div:nth-child(2){
+    grid-template-columns:1fr!important;
+  }
+  #handsSection > div:nth-of-type(2){
+    grid-template-columns:1fr!important;
+  }
+}
+</style>
+
+</head>
+<body>
+<div class="app-shell">
+<h2 class="sr-only">Herramienta para anotar jugadores de WPT Poker Spins, con colores, guardado automatico y aviso de estado</h2>
+
+
+<div id="authBox" style="background:var(--surface-1); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;">
+  <div id="loggedOutBox">
+    <div style="font-weight:600; margin-bottom:8px;">Iniciar sesión</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:center;">
+      <input id="loginEmail" type="email" placeholder="Correo" />
+      <input id="loginPassword" type="password" placeholder="Contraseña" />
+      <button id="loginBtn">Entrar</button>
+    </div>
+    <div id="loginMsg" style="font-size:12px; color:var(--text-secondary); margin-top:8px;"></div>
+  </div>
+
+  <div id="loggedInBox" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:600;">Conectado a Supabase</div>
+        <div id="userEmail" style="font-size:12px; color:var(--text-secondary);"></div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="migrateBtn">Migrar datos locales</button>
+        <button id="logoutBtn">Cerrar sesión</button>
+      </div>
+    </div>
+    <div id="syncMsg" style="font-size:12px; color:var(--text-secondary); margin-top:8px;"></div>
+  </div>
+</div>
+
+<div id="statusBanner" style="display:none; padding:8px 12px; border-radius:var(--radius); font-size:13px; margin-bottom:10px;"></div>
+
+
+<div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap;">
+  <input id="search" type="text" placeholder="Buscar jugador..." style="flex:1; min-width:180px;" />
+  <button id="showHandsBtn">🃏 Guardar mano</button>
+  <button id="addBtn"><i class="ti ti-plus" style="font-size:16px; vertical-align:-3px; margin-right:4px;" aria-hidden="true"></i>Nuevo jugador</button>
+</div>
+
+<div id="handsSection" style="display:none; background:var(--surface-1); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+    <div>
+      <div style="font-weight:600; font-size:15px;">Manos jugadas</div>
+      <div style="font-size:12px; color:var(--text-secondary);">Guarda capturas y ordénalas por fecha.</div>
+    </div>
+    <button id="closeHandsBtn">Cerrar</button>
+  </div>
+
+  <div style="display:grid; grid-template-columns:150px 1fr auto; gap:8px; align-items:center; margin-bottom:8px;">
+    <input id="handDate" type="date" />
+    <input id="handImage" type="file" accept="image/*" />
+    <button id="saveHandBtn">Guardar</button>
+  </div>
+
+  <input id="handDescription" type="text" placeholder="Pequeña descripción de la mano..." style="width:100%; margin-bottom:10px;" />
+
+  <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
+    <input id="handSearchDate" type="date" style="max-width:180px;" />
+    <button id="clearHandSearchBtn">Todas las fechas</button>
+  </div>
+
+  <div id="handPreviewWrap" style="display:none; margin-bottom:10px;">
+    <img id="handPreview" style="width:100%; max-height:420px; object-fit:contain; border-radius:10px; border:1px solid var(--border); background:#000;" />
+  </div>
+
+  <div id="handsList" style="display:flex; flex-direction:column; gap:10px;"></div>
+</div>
+
+<div id="formWrap" style="display:none; background:var(--surface-1); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;">
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+    <input id="fName" type="text" placeholder="Nombre / alias" />
+    <select id="fTag">
+      <option value="">Sin etiqueta</option>
+<option value="tight">Tight</option>
+<option value="loose">Loose</option>
+<option value="agresivo">Agresivo</option>
+<option value="pasivo">Pasivo</option>
+<option value="fish">Fish</option>
+<option value="reg">Reg</option>
+<option value="maniaco">Maniaco</option>
+<option value="calling">Calling Station</option>
+    </select>
+  </div>
+
+ <p style="font-size:12px; color:var(--text-secondary); margin:0 0 6px;">Color</p>
+<div id="colorPicker" style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;"></div>
+
+<p style="font-size:12px; color:var(--text-secondary); margin:0 0 6px;">Imagen del jugador</p>
+
+<div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+  <input id="fImage" type="file" accept="image/*" />
+
+  <img
+    id="imagePreview"
+    style="display:none; width:55px; height:55px; object-fit:cover; border-radius:8px; border:1px solid var(--border);"
+  />
+</div>
+
+<textarea id="fNotes" placeholder="Anotaciones: tendencias, lineas, hands vistas..." style="width:100%; min-height:70px; padding:8px; border-radius:var(--radius); border:0.5px solid var(--border); font-family:var(--font-sans); font-size:14px; margin-bottom:8px; resize:vertical;"></textarea>
+  <div style="display:flex; gap:8px; justify-content:flex-end;">
+    <button id="cancelBtn">Cancelar</button>
+    <button id="saveBtn"><i class="ti ti-check" style="font-size:16px; vertical-align:-3px; margin-right:4px;" aria-hidden="true"></i>Guardar</button>
+  </div>
+</div>
+
+<div id="emptyState" style="display:none; text-align:center; padding:2rem 1rem; color:var(--text-secondary); font-size:14px;">
+  Todavia no hay jugadores anotados. Toca "Nuevo jugador" para empezar.
+</div>
+
+<div id="list" style="display:flex; flex-direction:column; gap:8px;"></div>
+
+
+<div id="imageModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.92);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+">
+  <button id="closeImageModal" style="
+    position:absolute;
+    top:16px;
+    right:18px;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:none;
+    font-size:24px;
+    cursor:pointer;
+    background:rgba(255,255,255,0.15);
+    color:white;
+  ">×</button>
+
+  <img id="modalImage" style="
+    max-width:96vw;
+    max-height:94vh;
+    object-fit:contain;
+    border-radius:10px;
+    box-shadow:0 0 30px rgba(0,0,0,0.45);
+  " />
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const TAG_LABELS = {
+  tight: 'Tight',
+  loose: 'Loose',
+  agresivo: 'Agresivo',
+  pasivo: 'Pasivo',
+  fish: 'Fish',
+  reg: 'Reg',
+  maniaco: 'Maniaco',
+  calling: 'Calling Station'
+};
+
+const SWATCHES = [
+  { id: 'rojo',     hex: '#E24B4A' },
+  { id: 'azul',     hex: '#378ADD' },
+  { id: 'celeste',  hex: '#5AC8E8' },
+  { id: 'morado',   hex: '#7F77DD' },
+  { id: 'naranja',  hex: '#F28C28' },
+  { id: 'amarillo', hex: '#E8C13A' },
+  { id: 'verde',    hex: '#2EAD62' },
+  { id: 'negro',    hex: '#000000' }
+];
+const SWATCH_MAP = Object.fromEntries(SWATCHES.map(s => [s.id, s.hex]));
+const STORAGE_KEY = 'wpt-spins-players';
+const HANDS_STORAGE_KEY = 'wpt-spins-hands';
+
+const SUPABASE_URL = 'https://ttyltngtmkgdhhunhbzh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_0_2CO26S_OipX8xHhYK8nA_ylAJS_Zx';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const IMAGE_BUCKET = 'poker-images';
+let currentUser = null;
+
+let players = [];
+let editingId = null;
+let selectedColor = 'rojo';
+let selectedImage = '';
+let storageOk = true;
+
+let hands = [];
+let selectedHandImage = '';
+
+function showBanner(kind, msg) {
+  const el = document.getElementById('statusBanner');
+  el.style.display = 'block';
+  el.textContent = msg;
+  if (kind === 'error') {
+    el.style.background = '#FAECE7';
+    el.style.color = '#712B13';
+  } else if (kind === 'ok') {
+    el.style.background = '#EAF3DE';
+    el.style.color = '#27500A';
+  } else {
+    el.style.background = 'var(--surface-1)';
+    el.style.color = 'var(--text-secondary)';
+  }
+}
+
+function hideBannerSoon() {
+  setTimeout(() => {
+    const el = document.getElementById('statusBanner');
+    if (el.dataset.persist !== 'true') el.style.display = 'none';
+  }, 2500);
+}
+
+function storageAvailable() {
+  try {
+    const testKey = '__storage_test__';
+    localStorage.setItem(testKey, '1');
+    localStorage.removeItem(testKey);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function buildColorPicker() {
+  const wrap = document.getElementById('colorPicker');
+  wrap.innerHTML = '';
+  SWATCHES.forEach(s => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.color = s.id;
+    btn.setAttribute('aria-label', 'Color ' + s.id);
+    const borderBase = s.id === 'blanco' ? '1px solid var(--border)' : '2px solid transparent';
+    btn.style.cssText = `width:26px; height:26px; border-radius:50%; background:${s.hex}; border:${borderBase}; padding:0; cursor:pointer;`;
+    btn.addEventListener('click', () => {
+      selectedColor = s.id;
+      updateColorPicker();
+    });
+    wrap.appendChild(btn);
+  });
+  updateColorPicker();
+}
+
+function updateColorPicker() {
+  document.querySelectorAll('#colorPicker button').forEach(btn => {
+    const isWhite = btn.dataset.color === 'blanco';
+    if (btn.dataset.color === selectedColor) {
+      btn.style.borderColor = 'var(--text-primary)';
+      btn.style.borderWidth = '2px';
+    } else {
+      btn.style.borderColor = isWhite ? 'var(--border)' : 'transparent';
+      btn.style.borderWidth = isWhite ? '1px' : '2px';
+    }
+  });
+}
+
+function dataUrlToBlob(dataUrl) {
+  const parts = dataUrl.split(',');
+  const mime = parts[0].match(/:(.*?);/)[1];
+  const binary = atob(parts[1]);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], {type:mime});
+}
+
+async function uploadImageDataUrl(dataUrl, folder) {
+  if (!dataUrl) return '';
+  if (!dataUrl.startsWith('data:')) return dataUrl;
+  const blob = dataUrlToBlob(dataUrl);
+  const ext = blob.type.includes('png') ? 'png' : 'jpg';
+  const path = `${currentUser.id}/${folder}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+
+  const { error } = await supabaseClient.storage
+    .from(IMAGE_BUCKET)
+    .upload(path, blob, {contentType:blob.type, upsert:false});
+
+  if (error) throw error;
+  return path;
+}
+
+async function signedImageUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('data:') || path.startsWith('http')) return path;
+
+  const { data, error } = await supabaseClient.storage
+    .from(IMAGE_BUCKET)
+    .createSignedUrl(path, 3600);
+
+  if (error) return '';
+  return data.signedUrl;
+}
+
+async function loadCloudPlayers() {
+  if (!currentUser) return;
+
+  const { data, error } = await supabaseClient
+    .from('players')
+    .select('*')
+    .order('created_at', {ascending:false});
+
+  if (error) throw error;
+
+  players = [];
+  for (const p of (data || [])) {
+    players.push({
+      ...p,
+      id:String(p.id),
+      updated:p.created_at ? new Date(p.created_at).getTime() : Date.now(),
+      imagePath:p.image || '',
+      image:await signedImageUrl(p.image || '')
+    });
+  }
+
+  buildColorPicker();
+  render();
+}
+
+async function loadCloudHands() {
+  if (!currentUser) return;
+
+  const { data, error } = await supabaseClient
+    .from('hands')
+    .select('*')
+    .order('hand_date', {ascending:false})
+    .order('created_at', {ascending:false});
+
+  if (error) throw error;
+
+  hands = [];
+  for (const h of (data || [])) {
+    hands.push({
+      ...h,
+      id:String(h.id),
+      date:h.hand_date || '',
+      updated:h.created_at ? new Date(h.created_at).getTime() : Date.now(),
+      imagePath:h.image || '',
+      image:await signedImageUrl(h.image || '')
+    });
+  }
+
+  renderHands();
+}
+
+async function refreshCloudData() {
+  await Promise.all([loadCloudPlayers(), loadCloudHands()]);
+}
+
+function setAuthUI(user) {
+  currentUser = user || null;
+  document.getElementById('loggedOutBox').style.display = currentUser ? 'none' : 'block';
+  document.getElementById('loggedInBox').style.display = currentUser ? 'block' : 'none';
+  document.getElementById('userEmail').textContent = currentUser ? currentUser.email : '';
+  document.getElementById('addBtn').disabled = !currentUser;
+  document.getElementById('showHandsBtn').disabled = !currentUser;
+
+  if (!currentUser) {
+    players = [];
+    hands = [];
+    buildColorPicker();
+    render();
+    renderHands();
+  }
+}
+
+async function migrateLocalData() {
+  if (!currentUser) return;
+
+  const msg = document.getElementById('syncMsg');
+  msg.textContent = 'Migrando datos locales...';
+
+  let localPlayers = [];
+  let localHands = [];
+
+  try {
+    localPlayers = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    localHands = JSON.parse(localStorage.getItem(HANDS_STORAGE_KEY) || '[]');
+  } catch (e) {
+    msg.textContent = 'No se pudieron leer los datos locales.';
+    return;
+  }
+
+  try {
+    let pCount = 0;
+    let hCount = 0;
+
+    for (const p of localPlayers) {
+      const imagePath = await uploadImageDataUrl(p.image || '', 'players');
+      const { error } = await supabaseClient.from('players').insert({
+        user_id:currentUser.id,
+        name:p.name || '',
+        tag:p.tag || null,
+        color:p.color || 'rojo',
+        notes:p.notes || null,
+        image:imagePath || null
+      });
+      if (error) throw error;
+      pCount++;
+    }
+
+    for (const h of localHands) {
+      const imagePath = await uploadImageDataUrl(h.image || '', 'hands');
+      const { error } = await supabaseClient.from('hands').insert({
+        user_id:currentUser.id,
+        hand_date:h.date || null,
+        description:h.description || null,
+        image:imagePath || null
+      });
+      if (error) throw error;
+      hCount++;
+    }
+
+    localStorage.setItem('wpt-spins-cloud-migrated', 'true');
+    msg.textContent = `Migración completa: ${pCount} jugadores y ${hCount} manos.`;
+    await refreshCloudData();
+
+  } catch (e) {
+    console.error(e);
+    msg.textContent = 'Error al migrar: ' + (e.message || 'desconocido');
+  }
+}
+
+
+function resizeImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = e => {
+      const img = new Image();
+
+      img.onload = () => {
+        const size = 120;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+
+        const ctx = canvas.getContext('2d');
+
+        const scale = Math.max(
+          size / img.width,
+          size / img.height
+        );
+
+        const width = img.width * scale;
+        const height = img.height * scale;
+
+        const x = (size - width) / 2;
+        const y = (size - height) / 2;
+
+        ctx.drawImage(img, x, y, width, height);
+
+        resolve(canvas.toDataURL('image/jpeg', 0.70));
+      };
+
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function resizeHandImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = e => {
+      const img = new Image();
+
+      img.onload = () => {
+        const maxW = 1200;
+        const maxH = 900;
+
+        let width = img.width;
+        let height = img.height;
+
+        const scale = Math.min(1, maxW / width, maxH / height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL('image/jpeg', 0.78));
+      };
+
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadHands() {
+  hands = [];
+}
+
+async function saveHands() {
+  await loadCloudHands();
+}
+
+function renderHands() {
+  const wrap = document.getElementById('handsList');
+  wrap.innerHTML = '';
+
+  const dateFilter = document.getElementById('handSearchDate')?.value || '';
+
+  const ordered = hands
+    .filter(hand => !dateFilter || hand.date === dateFilter)
+    .slice()
+    .sort((a,b) => {
+      if (a.date !== b.date) return (b.date || '').localeCompare(a.date || '');
+      return b.updated - a.updated;
+    });
+
+  if (!ordered.length) {
+    wrap.innerHTML = dateFilter
+      ? '<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:13px;">No hay manos guardadas en esa fecha.</div>'
+      : '<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:13px;">Todavía no has guardado manos.</div>';
+    return;
+  }
+
+  let currentDate = null;
+
+  ordered.forEach(hand => {
+    if (hand.date !== currentDate) {
+      currentDate = hand.date;
+
+      const dateTitle = document.createElement('div');
+      dateTitle.style.cssText = 'font-weight:600; font-size:13px; margin-top:4px; color:var(--text-secondary);';
+      dateTitle.textContent = hand.date
+        ? new Date(hand.date + 'T00:00:00').toLocaleDateString('es-PE', {day:'2-digit', month:'long', year:'numeric'})
+        : 'Sin fecha';
+
+      wrap.appendChild(dateTitle);
+    }
+
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--surface-2); border:0.5px solid var(--border); border-radius:12px; padding:10px;';
+
+    const uploadedAt = hand.updated
+      ? new Date(hand.updated).toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'})
+      : '';
+
+    card.innerHTML = `
+      <img src="${hand.image}" class="handZoomImage" data-image="${hand.image}" style="width:100%; max-height:520px; object-fit:contain; border-radius:10px; background:#000; display:block; cursor:zoom-in;" />
+      <div style="margin-top:8px;">
+        <div style="font-size:12px; color:var(--text-muted);">Subida a las ${uploadedAt}</div>
+        ${hand.description ? `<div style="font-size:13.5px; color:var(--text-secondary); margin-top:4px; white-space:pre-wrap;">${hand.description.replace(/</g,'&lt;')}</div>` : ''}
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+        <button class="deleteHandBtn" data-id="${hand.id}" style="padding:5px 9px;">Eliminar</button>
+      </div>
+    `;
+
+    wrap.appendChild(card);
+  });
+
+  wrap.querySelectorAll('.deleteHandBtn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const hand = hands.find(h => h.id === btn.dataset.id);
+      if (!hand) return;
+
+      const { error } = await supabaseClient.from('hands').delete().eq('id', Number(hand.id));
+      if (error) {
+        alert('No se pudo eliminar la mano: ' + error.message);
+        return;
+      }
+
+      if (hand.imagePath) await supabaseClient.storage.from(IMAGE_BUCKET).remove([hand.imagePath]);
+      await loadCloudHands();
+    });
+  });
+
+  wrap.querySelectorAll('.handZoomImage').forEach(img => {
+    img.addEventListener('click', () => {
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      modalImage.src = img.dataset.image;
+      modal.style.display = 'flex';
+    });
+  });
+}
+
+async function load() {
+  buildColorPicker();
+
+  const today = new Date();
+  document.getElementById('handDate').value =
+    `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  setAuthUI(session?.user || null);
+
+  if (session?.user) {
+    try {
+      await refreshCloudData();
+      showBanner('ok', 'Sincronizado con Supabase.');
+      hideBannerSoon();
+    } catch (e) {
+      console.error(e);
+      showBanner('error', 'No se pudieron cargar los datos desde Supabase: ' + (e.message || 'error'));
+    }
+  } else {
+    render();
+    renderHands();
+  }
+}
+
+async function save() {
+  try {
+    await loadCloudPlayers();
+    showBanner('ok', 'Guardado en Supabase.');
+    hideBannerSoon();
+    return true;
+  } catch (e) {
+    console.error(e);
+    showBanner('error', 'Error de sincronización: ' + (e.message || 'desconocido'));
+    return false;
+  }
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function render() {
+  const list = document.getElementById('list');
+  const empty = document.getElementById('emptyState');
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const filtered = players
+    .filter(p => p.name.toLowerCase().includes(q) || (p.notes||'').toLowerCase().includes(q))
+    .sort((a,b) => b.updated - a.updated);
+
+  list.innerHTML = '';
+  if (players.length === 0) {
+    empty.style.display = 'block';
+    empty.textContent = storageOk
+      ? 'Todavia no hay jugadores anotados. Toca "Nuevo jugador" para empezar.'
+      : 'No se pudo cargar tu lista (ver aviso arriba). Esto puede NO significar que este vacia.';
+  } else {
+    empty.style.display = 'none';
+  }
+
+  filtered.forEach(p => {
+    const hex = SWATCH_MAP[p.color] || SWATCH_MAP.rojo;
+    const dotBorder = p.color === 'blanco' ? 'border:1px solid var(--border);' : '';
+    const card = document.createElement('div');
+    card.style.cssText = `background:var(--surface-2); border:0.5px solid var(--border); border-left:4px solid ${hex}; border-radius:12px; padding:0.85rem 1rem;`;
+
+    const tagHtml = p.tag ? `<span style="background:var(--surface-1); color:var(--text-secondary); font-size:12px; padding:2px 8px; border-radius:var(--radius); margin-left:8px;">${TAG_LABELS[p.tag]}</span>` : '';
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+        <div style="min-width:0; display:flex; align-items:center;">
+          <span style="width:9px; height:9px; border-radius:50%; background:${hex}; ${dotBorder} display:inline-block; margin-right:8px; flex-shrink:0;"></span>
+
+${p.image ? `
+  <img
+    src="${p.image}"
+    style="
+      width:42px;
+      height:42px;
+      object-fit:cover;
+      border-radius:8px;
+      margin-right:9px;
+      flex-shrink:0;
+      border:1px solid var(--border);
+    "
+  >
+` : ''}
+
+<span style="font-weight:500; font-size:15px;">${p.name}</span>${tagHtml}
+        </div>
+        <div style="display:flex; gap:4px; flex-shrink:0;">
+          <button class="editBtn" data-id="${p.id}" style="padding:4px 8px; border:none; background:transparent; cursor:pointer;" aria-label="Editar">✏️</button>
+          <button class="delBtn" data-id="${p.id}" style="padding:4px 8px; border:none; background:transparent; cursor:pointer;" aria-label="Eliminar">🗑️</button>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:var(--text-secondary); margin:6px 0 4px; white-space:pre-wrap;">${p.notes ? p.notes.replace(/</g,'&lt;') : 'Sin anotaciones aun.'}</p>
+      <p style="font-size:11px; color:var(--text-muted); margin:0;">Actualizado ${fmtDate(p.updated)}</p>
+    `;
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('.editBtn').forEach(btn => {
+    btn.addEventListener('click', () => openForm(btn.dataset.id));
+  });
+  list.querySelectorAll('.delBtn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const p = players.find(x => x.id === btn.dataset.id);
+      if (!p) return;
+
+      const { error } = await supabaseClient.from('players').delete().eq('id', Number(p.id));
+      if (error) {
+        alert('No se pudo eliminar el jugador: ' + error.message);
+        return;
+      }
+
+      if (p.imagePath) await supabaseClient.storage.from(IMAGE_BUCKET).remove([p.imagePath]);
+      await loadCloudPlayers();
+    });
+  });
+}
+
+function openForm(id) {
+  editingId = id || null;
+  const wrap = document.getElementById('formWrap');
+  wrap.style.display = 'block';
+  if (id) {
+  const p = players.find(x => x.id === id);
+
+  document.getElementById('fName').value = p.name;
+  document.getElementById('fTag').value = p.tag || '';
+  document.getElementById('fNotes').value = p.notes || '';
+
+  selectedColor = p.color || 'rojo';
+  selectedImage = p.image || '';
+
+} else {
+
+  document.getElementById('fName').value = '';
+  document.getElementById('fTag').value = '';
+  document.getElementById('fNotes').value = '';
+  document.getElementById('fImage').value = '';
+
+  selectedColor = 'rojo';
+  selectedImage = '';
+}
+
+const preview = document.getElementById('imagePreview');
+
+if (selectedImage) {
+  preview.src = selectedImage;
+  preview.style.display = 'block';
+} else {
+  preview.src = '';
+  preview.style.display = 'none';
+}
+  updateColorPicker();
+  document.getElementById('fName').focus();
+}
+
+function closeForm() {
+  document.getElementById('formWrap').style.display = 'none';
+  editingId = null;
+}
+
+
+function closeImageModal() {
+  const modal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  modal.style.display = 'none';
+  modalImage.src = '';
+}
+
+document.getElementById('closeImageModal').addEventListener('click', closeImageModal);
+
+document.getElementById('imageModal').addEventListener('click', e => {
+  if (e.target.id === 'imageModal') closeImageModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeImageModal();
+});
+
+document.getElementById('showHandsBtn').addEventListener('click', () => {
+  document.getElementById('handsSection').style.display = 'block';
+});
+
+document.getElementById('handSearchDate').addEventListener('change', renderHands);
+
+document.getElementById('clearHandSearchBtn').addEventListener('click', () => {
+  document.getElementById('handSearchDate').value = '';
+  renderHands();
+});
+
+document.getElementById('closeHandsBtn').addEventListener('click', () => {
+  document.getElementById('handsSection').style.display = 'none';
+});
+
+document.getElementById('handImage').addEventListener('change', async e => {
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  try {
+    selectedHandImage = await resizeHandImage(file);
+
+    const previewWrap = document.getElementById('handPreviewWrap');
+    const preview = document.getElementById('handPreview');
+
+    preview.src = selectedHandImage;
+    previewWrap.style.display = 'block';
+  } catch (e) {
+    alert('No se pudo cargar la imagen de la mano.');
+  }
+});
+
+document.getElementById('saveHandBtn').addEventListener('click', async () => {
+  const date = document.getElementById('handDate').value;
+  const description = document.getElementById('handDescription').value.trim();
+
+  if (!currentUser) {
+    alert('Debes iniciar sesión.');
+    return;
+  }
+
+  if (!selectedHandImage) {
+    alert('Selecciona una imagen de la mano.');
+    return;
+  }
+
+  try {
+    const imagePath = await uploadImageDataUrl(selectedHandImage, 'hands');
+
+    const { error } = await supabaseClient.from('hands').insert({
+      user_id:currentUser.id,
+      hand_date:date || null,
+      description:description || null,
+      image:imagePath || null
+    });
+
+    if (error) throw error;
+
+    selectedHandImage = '';
+    document.getElementById('handImage').value = '';
+    document.getElementById('handDescription').value = '';
+    document.getElementById('handPreview').src = '';
+    document.getElementById('handPreviewWrap').style.display = 'none';
+
+    await loadCloudHands();
+  } catch (e) {
+    console.error(e);
+    alert('No se pudo guardar la mano: ' + (e.message || 'error'));
+  }
+});
+
+document.getElementById('fImage').addEventListener('change', async e => {
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  try {
+    selectedImage = await resizeImage(file);
+
+    const preview = document.getElementById('imagePreview');
+    preview.src = selectedImage;
+    preview.style.display = 'block';
+
+  } catch (e) {
+    alert('No se pudo cargar la imagen.');
+  }
+});
+document.getElementById('addBtn').addEventListener('click', () => openForm(null));
+document.getElementById('cancelBtn').addEventListener('click', closeForm);
+document.getElementById('search').addEventListener('input', render);
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const name = document.getElementById('fName').value.trim();
+
+  if (!currentUser) {
+    alert('Debes iniciar sesión.');
+    return;
+  }
+
+  if (!name) {
+    alert('Ingresa un nombre para el jugador.');
+    return;
+  }
+
+  const tag = document.getElementById('fTag').value;
+  const notes = document.getElementById('fNotes').value.trim();
+
+  try {
+    let imagePath = '';
+
+    if (editingId) {
+      const existing = players.find(x => x.id === editingId);
+      imagePath = existing?.imagePath || '';
+
+      if (selectedImage && selectedImage.startsWith('data:')) {
+        const newPath = await uploadImageDataUrl(selectedImage, 'players');
+        if (imagePath) await supabaseClient.storage.from(IMAGE_BUCKET).remove([imagePath]);
+        imagePath = newPath;
+      }
+
+      const { error } = await supabaseClient
+        .from('players')
+        .update({
+          name,
+          tag:tag || null,
+          notes:notes || null,
+          color:selectedColor,
+          image:imagePath || null
+        })
+        .eq('id', Number(editingId));
+
+      if (error) throw error;
+
+    } else {
+      if (selectedImage) imagePath = await uploadImageDataUrl(selectedImage, 'players');
+
+      const { error } = await supabaseClient.from('players').insert({
+        user_id:currentUser.id,
+        name,
+        tag:tag || null,
+        notes:notes || null,
+        color:selectedColor,
+        image:imagePath || null
+      });
+
+      if (error) throw error;
+    }
+
+    closeForm();
+    await loadCloudPlayers();
+
+  } catch (e) {
+    console.error(e);
+    alert('No se pudo guardar el jugador: ' + (e.message || 'error'));
+  }
+});
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const msg = document.getElementById('loginMsg');
+
+  msg.textContent = 'Iniciando sesión...';
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({email, password});
+
+  if (error) {
+    msg.textContent = 'Error: ' + error.message;
+    return;
+  }
+
+  msg.textContent = '';
+  setAuthUI(data.user);
+  await refreshCloudData();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await supabaseClient.auth.signOut();
+  setAuthUI(null);
+});
+
+document.getElementById('migrateBtn').addEventListener('click', migrateLocalData);
+
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  setAuthUI(session?.user || null);
+  if (session?.user && event !== 'INITIAL_SESSION') {
+    try { await refreshCloudData(); } catch (e) { console.error(e); }
+  }
+});
+
+load();
+</script>
+</div>
+</body>
+</html>
