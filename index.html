@@ -4,39 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WPT Poker - Anotación de jugadores</title>
+<meta name="theme-color" content="#111b18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WPT Poker">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 
 <style>
-:root{
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --bg:#f5f7fa;
-  --surface-1:#ffffff;
-  --surface-2:#fbfcfe;
-  --text-primary:#18212f;
-  --text-secondary:#5f6b7a;
-  --text-muted:#8a94a3;
-  --text-danger:#b42318;
-  --border:#d9dee7;
-  --radius:10px;
-  --accent:#2563eb;
-  --shadow:0 8px 24px rgba(16,24,40,.06);
-}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{
-  background:var(--bg);
-  color:var(--text-primary);
-  font-family:var(--font-sans);
-  padding:22px;
-}
-.app-shell{
-  width:min(980px,100%);
-  margin:0 auto;
-  background:var(--surface-1);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:18px;
-  box-shadow:var(--shadow);
-}
+:root{--font-sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#f3f0e8;--surface-1:#fff;--surface-2:#fff;--text-primary:#14201c;--text-secondary:#56635d;--text-muted:#87908c;--text-danger:#c44545;--border:#d8d7d0;--radius:8px;--accent:#08775b;--gold:#d6a63a;--shadow:5px 5px 0 #cad9d2}
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:var(--bg);color:var(--text-primary);font-family:var(--font-sans)}
+.topbar{height:66px;background:#111b18;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 max(20px,4vw)}
+.brand{font-weight:900;letter-spacing:.13em}.brand b{color:var(--gold)}.top-state{font-size:11px;color:#afbbb6}
+.app-shell{width:min(1180px,100%);margin:0 auto;padding:38px max(18px,3vw)}
+.hero{display:flex;align-items:end;justify-content:space-between;gap:28px;margin-bottom:25px}.hero-kicker{font:800 11px ui-monospace,monospace;color:var(--accent);letter-spacing:.14em}.hero h1{font:500 clamp(40px,6vw,68px)/.95 Georgia,serif;letter-spacing:-.035em;margin:9px 0 0}.hero-copy{max-width:370px;color:var(--text-secondary);font-size:14px;line-height:1.65;margin:0}
 .sr-only{
   position:absolute!important;
   width:1px!important;
@@ -48,54 +30,15 @@ body{
   white-space:nowrap!important;
   border:0!important;
 }
-button,input,select,textarea{font:inherit}
-button{
-  border:1px solid var(--border);
-  background:var(--surface-1);
-  color:var(--text-primary);
-  border-radius:var(--radius);
-  padding:8px 11px;
-  cursor:pointer;
-  transition:.15s ease;
-}
-button:hover{background:#f2f5f9}
+button,input,select,textarea{font:inherit}button{border:1px solid var(--border);background:var(--surface-1);color:var(--text-primary);border-radius:var(--radius);padding:10px 13px;cursor:pointer;transition:.15s ease;font-weight:700}button:hover{transform:translateY(-1px);border-color:var(--accent)}
 button:disabled{opacity:.5;cursor:not-allowed}
-#addBtn,#saveBtn,#saveHandBtn,#loginBtn{
-  background:var(--accent);
-  border-color:var(--accent);
-  color:white;
-}
-input,select,textarea{
-  border:1px solid var(--border);
-  background:var(--surface-1);
-  color:var(--text-primary);
-  border-radius:var(--radius);
-  padding:9px 10px;
-  outline:none;
-}
-input:focus,select:focus,textarea:focus{
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(37,99,235,.10);
-}
-#authBox{
-  box-shadow:none;
-}
-#statusBanner{
-  border:1px solid var(--border);
-}
-#list > div,
-#handsList > div{
-  box-shadow:0 2px 8px rgba(16,24,40,.035);
-}
-.editBtn,.delBtn{
-  border-radius:8px!important;
-}
-#search{
-  min-height:38px;
-}
+#addBtn,#saveBtn,#saveHandBtn,#loginBtn{background:#14201c;border-color:#14201c;color:#fff}#showHandsBtn{background:var(--accent);border-color:var(--accent);color:#fff}
+input,select,textarea{border:1px solid var(--border);background:#fff;color:var(--text-primary);border-radius:var(--radius);padding:10px 11px;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(8,119,91,.1)}
+#authBox{box-shadow:none!important;border:1px solid var(--border)!important;border-left:4px solid var(--accent)!important;background:rgba(255,255,255,.65)!important}
+#statusBanner{border:1px solid var(--border)}.main-tools{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;background:#fff;border:1px solid #14201c;padding:12px;box-shadow:var(--shadow)}
+#list{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px!important}#list>div,#handsList>div{box-shadow:none!important;background:#fff!important;border-color:var(--border)!important;border-radius:9px!important;padding:17px!important}.editBtn,.delBtn{border-radius:8px!important}#search{min-height:42px}.section-panel{border:1px solid #14201c!important;border-radius:0!important;box-shadow:var(--shadow);padding:20px!important}
 @media(max-width:680px){
-  body{padding:10px}
-  .app-shell{padding:12px;border-radius:12px}
+  .top-state{display:none}.app-shell{padding-top:26px}.hero{display:block}.hero-copy{margin-top:18px}.main-tools{display:grid;grid-template-columns:1fr 1fr}.main-tools #search{grid-column:1/-1}#list{grid-template-columns:1fr}
   #loggedOutBox > div:nth-child(2){
     grid-template-columns:1fr!important;
   }
@@ -107,8 +50,10 @@ input:focus,select:focus,textarea:focus{
 
 </head>
 <body>
+<header class="topbar"><div class="brand"><b>WPT</b> · PLAYER NOTES</div><div class="top-state">Sincronización segura con Supabase</div></header>
 <div class="app-shell">
 <h2 class="sr-only">Herramienta para anotar jugadores de WPT Poker Spins, con colores, guardado automatico y aviso de estado</h2>
+<section class="hero"><div><div class="hero-kicker">POKER SPINS · RIVALES</div><h1>Tu lectura de la mesa.</h1></div><p class="hero-copy">Registra tendencias, manos y exploits de tus rivales. Tus datos se sincronizan para acompañarte en PC y celular.</p></section>
 
 
 <div id="authBox" style="background:var(--surface-1); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;">
@@ -140,14 +85,14 @@ input:focus,select:focus,textarea:focus{
 <div id="statusBanner" style="display:none; padding:8px 12px; border-radius:var(--radius); font-size:13px; margin-bottom:10px;"></div>
 
 
-<div style="display:flex; gap:8px; margin-bottom:1rem; flex-wrap:wrap;">
+<div class="main-tools">
   <input id="search" type="text" placeholder="Buscar jugador..." style="flex:1; min-width:180px;" />
   <button id="showNashBtn">📊 Tablas Nash</button>
   <button id="showHandsBtn">🃏 Guardar mano</button>
   <button id="addBtn"><i class="ti ti-plus" style="font-size:16px; vertical-align:-3px; margin-right:4px;" aria-hidden="true"></i>Nuevo jugador</button>
 </div>
 
-<div id="handsSection" style="display:none; background:var(--surface-1); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;">
+<div id="handsSection" class="section-panel" style="display:none; background:var(--surface-1); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;">
   <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
     <div>
       <div style="font-weight:600; font-size:15px;">Manos jugadas</div>
@@ -176,7 +121,7 @@ input:focus,select:focus,textarea:focus{
   <div id="handsList" style="display:flex; flex-direction:column; gap:10px;"></div>
 </div>
 
-<div id="formWrap" style="display:none; background:var(--surface-1); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;">
+<div id="formWrap" class="section-panel" style="display:none; background:var(--surface-1); border-radius:var(--radius); padding:1rem; margin-bottom:1rem;">
   <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
     <input id="fName" type="text" placeholder="Nombre / alias" />
     <select id="fTag">
