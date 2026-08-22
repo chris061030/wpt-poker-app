@@ -1,0 +1,25 @@
+{
+  "name": "WPT Poker - Anotación de jugadores",
+  "short_name": "WPT Poker",
+  "description": "Anotación de jugadores, manos y estrategia Nash para WPT Poker.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f0e8",
+  "theme_color": "#111b18",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
