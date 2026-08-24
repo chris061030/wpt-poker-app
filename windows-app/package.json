@@ -1,0 +1,35 @@
+{
+  "name": "wpt-player-notes-desktop",
+  "version": "2.0.0",
+  "description": "WPT Player Notes para Windows",
+  "main": "main.js",
+  "author": "Chris",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "37.2.6",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "com.chris.wptplayernotes",
+    "productName": "WPT Player Notes",
+    "artifactName": "WPT_Player_Notes_Setup.${ext}",
+    "files": ["main.js", "package.json"],
+    "win": {
+      "target": [{"target": "nsis", "arch": ["x64"]}]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "WPT Player Notes",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}
