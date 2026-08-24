@@ -6,9 +6,9 @@ function createWindow() {
   app.setAppUserModelId("com.chris.wptplayernotes");
   const win = new BrowserWindow({
     title: "WPT Player Notes",
-    width: 1120,
+    width: 980,
     height: 760,
-    minWidth: 760,
+    minWidth: 720,
     minHeight: 560,
     backgroundColor: "#f3f1ea",
     autoHideMenuBar: true,
