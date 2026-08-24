@@ -7,9 +7,9 @@ function createWindow() {
   const win = new BrowserWindow({
     title: "WPT Player Notes",
     width: 880,
-    height: 760,
+    height: 680,
     minWidth: 640,
-    minHeight: 560,
+    minHeight: 500,
     backgroundColor: "#f3f1ea",
     autoHideMenuBar: true,
     webPreferences: {
