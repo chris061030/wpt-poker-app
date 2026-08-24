@@ -1,0 +1,14 @@
+{
+  "appId": "com.chris.wptplayernotes",
+  "appName": "WPT Player Notes",
+  "webDir": "www",
+  "server": {
+    "url": "https://wpt-player-notes-new.gigi300606.chatgpt.site",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#10201a"
+  }
+}
