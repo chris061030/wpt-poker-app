@@ -1,0 +1,41 @@
+name: Build WPT Player Notes EXE
+
+on:
+  push:
+    branches:
+      - codex/wpt-player-notes-exe
+    paths:
+      - "windows-app/**"
+      - ".github/workflows/build-wpt-player-notes-exe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: windows-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: windows-app/package.json
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build Windows installer
+        run: npm run dist
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: WPT-Player-Notes-Windows
+          path: windows-app/dist/WPT_Player_Notes_Setup.exe
+          if-no-files-found: error
+          retention-days: 30
